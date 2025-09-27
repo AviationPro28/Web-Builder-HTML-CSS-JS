@@ -1,1 +1,234 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Live Website Builder — HTML / CSS / JS</title>
+  <style>
+    :root{--bg:#0f1724;--panel:#0b1220;--muted:#94a3b8;--accent:#06b6d4;--mono:ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", "Courier New", monospace}
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;background:linear-gradient(180deg,#071026, #07142a);color:#e6eef6;font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial}
+    header{display:flex;gap:12px;align-items:center;padding:14px 18px;border-bottom:1px solid rgba(255,255,255,0.03)}
+    header h1{font-size:16px;margin:0;font-weight:600}
+    .toolbar{margin-left:auto;display:flex;gap:8px;align-items:center}
+    button{background:linear-gradient(180deg,rgba(255,255,255,0.03),transparent);border:1px solid rgba(255,255,255,0.04);color:var(--muted);padding:8px 10px;border-radius:8px;font-weight:600;cursor:pointer}
+    button.primary{background:linear-gradient(180deg,var(--accent),#0891b2);border:none;color:#002;}
+    .layout{display:grid;grid-template-rows:1fr 320px;gap:12px;padding:12px;height:calc(100% - 68px)}
+    .editors{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+    .box{background:var(--panel);border-radius:12px;padding:10px;display:flex;flex-direction:column;border:1px solid rgba(255,255,255,0.02)}
+    .box header{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+    .label{font-size:13px;color:var(--muted);}
+    textarea{flex:1;background:transparent;border:1px dashed rgba(255,255,255,0.03);resize:none;padding:10px;font-family:var(--mono);color:#e6eef6;font-size:13px;border-radius:8px;outline:none}
+    .outputRow{display:grid;grid-template-columns:1fr 360px;gap:12px}
+    iframe#preview{width:100%;height:100%;border-radius:12px;border:1px solid rgba(0,0,0,0.2);background:white}
+    .console{height:100%;overflow:auto;padding:10px;background:#020617;border-radius:10px;border:1px solid rgba(255,255,255,0.015);font-family:var(--mono);font-size:13px}
+    .log{margin:0 0 6px 0;padding:6px;border-radius:6px}
+    .log.info{background:rgba(6,182,212,0.06);color:#86f0ff}
+    .log.warn{background:rgba(245,158,11,0.06);color:#ffdca6}
+    .log.error{background:rgba(239,68,68,0.06);color:#ffb3b3}
+    .controls{display:flex;gap:8px;align-items:center}
+    .small{font-size:12px;color:var(--muted)}
+    .hint{color:var(--muted);font-size:12px;margin-left:8px}
+    .grow{flex:1}
+    .footerNote{font-size:12px;color:var(--muted);padding:8px}
+    @media (max-width:980px){.editors{grid-template-columns:1fr;}.outputRow{grid-template-columns:1fr;grid-auto-rows:360px}}
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Live Website Builder</h1>
+    <div class="hint">Three boxes: HTML, CSS, JS — run to preview.</div>
+    <div class="toolbar">
+      <div class="controls">
+        <button id="runBtn" class="primary">Run (Ctrl/Cmd+Enter)</button>
+        <button id="openNew">Open in new tab</button>
+        <button id="download">Download .html</button>
+        <button id="save">Save</button>
+        <button id="load">Load</button>
+        <label class="small" title="Auto-run after edits"><input type="checkbox" id="autorun"> Auto-run</label>
+      </div>
+    </div>
+  </header>
 
+  <main class="layout">
+    <section class="editors">
+      <div class="box" style="min-height:200px">
+        <header><div class="label">HTML</div><div class="hint">Structure / body</div></header>
+        <textarea id="htmlEditor" spellcheck="false"><!-- Example HTML -->
+<h1>Hello from the builder</h1>
+<p>Edit HTML here.</p>
+</textarea>
+      </div>
+
+      <div class="box" style="min-height:200px">
+        <header><div class="label">CSS</div><div class="hint">Styling</div></header>
+        <textarea id="cssEditor" spellcheck="false">/* Example CSS */
+body{font-family:system-ui, -apple-system, 'Segoe UI', Roboto, Arial; padding:20px;}
+h1{color:#0b6;}
+</textarea>
+      </div>
+
+      <div class="box" style="min-height:200px">
+        <header><div class="label">JavaScript</div><div class="hint">Behavior</div></header>
+        <textarea id="jsEditor" spellcheck="false">// Example JS
+console.log('Ready to go');
+</textarea>
+      </div>
+    </section>
+
+    <section class="outputRow">
+      <div class="box" style="padding:6px;">
+        <header><div class="label">Preview</div><div class="hint">Iframe sandbox</div></header>
+        <iframe id="preview" sandbox="allow-scripts allow-forms allow-same-origin"></iframe>
+      </div>
+
+      <div class="box">
+        <header><div class="label">Console</div><div class="hint">Logs & errors from preview</div></header>
+        <div id="console" class="console"></div>
+      </div>
+    </section>
+
+    <div class="footerNote">Shortcuts: <strong>Ctrl/Cmd+Enter</strong> = Run. This runs your code in a sandboxed iframe. Use at your own risk.</div>
+  </main>
+
+  <script>
+    const htmlEditor = document.getElementById('htmlEditor');
+    const cssEditor = document.getElementById('cssEditor');
+    const jsEditor = document.getElementById('jsEditor');
+    const runBtn = document.getElementById('runBtn');
+    const preview = document.getElementById('preview');
+    const consoleEl = document.getElementById('console');
+    const autorun = document.getElementById('autorun');
+    const openNew = document.getElementById('openNew');
+    const download = document.getElementById('download');
+    const saveBtn = document.getElementById('save');
+    const loadBtn = document.getElementById('load');
+
+    const STORAGE_KEY = 'live_builder_code_v1';
+
+    function buildSrcDoc(html, css, js){
+      // We inject a small runtime into the iframe to capture console and errors.
+      const wrappedJS = `
+(function(){
+  // console capture
+  function send(kind, args){
+    try{ parent.postMessage({source:'live-builder', kind:kind, args: args.map(a=>{try{return JSON.stringify(a)}catch(e){return String(a)}})}, '*'); }catch(e){}
+  }
+  ['log','info','warn','error'].forEach(function(k){
+    const orig = console[k];
+    console[k] = function(){ orig.apply(console, arguments); send(k, Array.from(arguments)); };
+  });
+  window.onerror = function(msg, url, line, col, err){
+    send('error',['Error: '+msg+' (line '+line+':'+col+')']);
+  };
+  try{ // user's code
+    ${js}
+  }catch(e){
+    send('error',[String(e)]);
+  }
+})();
+`;
+      return `<!doctype html><html><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><style>html,body{margin:0;padding:0;min-height:100vh} ${css} </style></head><body>${html}
+<script>${wrappedJS}</script>
+</body></html>`;
+    }
+
+    function run(){
+      clearConsole();
+      const html = htmlEditor.value;
+      const css = cssEditor.value;
+      const js = jsEditor.value;
+      const src = buildSrcDoc(html, css, js);
+      // Use srcdoc if supported
+      try{
+        preview.srcdoc = src;
+      }catch(e){
+        // fallback to blob URL
+        const blob = new Blob([src], {type:'text/html'});
+        preview.src = URL.createObjectURL(blob);
+      }
+    }
+
+    runBtn.addEventListener('click', run);
+
+    // autorun
+    [htmlEditor, cssEditor, jsEditor].forEach(el => {
+      el.addEventListener('input', ()=>{
+        if(autorun.checked) debounceRun();
+      });
+    });
+
+    // keyboard shortcut
+    window.addEventListener('keydown', (e)=>{
+      const isMac = navigator.platform.toUpperCase().indexOf('MAC')>=0;
+      if((isMac?e.metaKey:e.ctrlKey) && e.key === 'Enter'){
+        e.preventDefault(); run();
+      }
+    });
+
+    // capture messages from iframe
+    window.addEventListener('message', (ev)=>{
+      try{
+        const msg = ev.data;
+        if(!msg || msg.source !== 'live-builder') return;
+        if(msg.kind){
+          msg.args.forEach(arg=>{
+            let text = arg;
+            try{ text = JSON.parse(arg); }catch(e){}
+            appendConsole(msg.kind, text);
+          });
+        }
+      }catch(e){console.error(e)}
+    });
+
+    function appendConsole(kind, text){
+      const p = document.createElement('div');
+      p.className = 'log '+(kind==='warn'? 'warn': kind==='error'? 'error':'info');
+      p.textContent = (kind+': ')+ (typeof text === 'string' ? text : JSON.stringify(text));
+      consoleEl.appendChild(p);
+      consoleEl.scrollTop = consoleEl.scrollHeight;
+    }
+    function clearConsole(){ consoleEl.innerHTML = ''; }
+
+    // debounce
+    let debounceTimer;
+    function debounceRun(){ clearTimeout(debounceTimer); debounceTimer = setTimeout(run, 350); }
+
+    // open in new tab
+    openNew.addEventListener('click', ()=>{
+      const html = htmlEditor.value;
+      const css = cssEditor.value;
+      const js = jsEditor.value;
+      const src = buildSrcDoc(html, css, js);
+      const blob = new Blob([src], {type:'text/html'});
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
+    });
+
+    // download
+    download.addEventListener('click', ()=>{
+      const html = htmlEditor.value;
+      const css = cssEditor.value;
+      const js = jsEditor.value;
+      const src = buildSrcDoc(html, css, js);
+      const blob = new Blob([src], {type:'text/html'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'project.html';
+      document.body.appendChild(a); a.click(); a.remove();
+    });
+
+    // save / load to localStorage
+    saveBtn.addEventListener('click', ()=>{
+      const payload = {html: htmlEditor.value, css: cssEditor.value, js: jsEditor.value, savedAt: new Date().toISOString()};
+      try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(payload)); alert('Saved to localStorage.'); }catch(e){ alert('Save failed: '+e.message); }
+    });
+    loadBtn.addEventListener('click', ()=>{
+      try{ const raw = localStorage.getItem(STORAGE_KEY); if(!raw) return alert('No saved project'); const payload = JSON.parse(raw); htmlEditor.value = payload.html; cssEditor.value = payload.css; jsEditor.value = payload.js; alert('Loaded.'); }catch(e){ alert('Load failed: '+e.message); }
+    });
+
+    // initial run
+    run();
+  </script>
+</body>
+</html>
