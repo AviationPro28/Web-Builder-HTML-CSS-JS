@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Web Builder — HTML / CSS / JS with 3D</title>
+  <style>
+    :root {
+      --bg: #0f1318;
+      --panel: #151b22;
+      --accent: #3b82f6;
+      --text: #e5e7eb;
+      --muted: #9aa4b2;
+      --border: #223042;
+      --ok: #22c55e;
+      --warn: #f59e0b;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; background: var(--bg); color: var(--text); font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; }
+    header {
+      display: flex; align-items: center; gap: 16px; padding: 12px 16px; border-bottom: 1px solid var(--border); background: linear-gradient(180deg, #11161c, #0f1318);
+      position: sticky; top: 0; z-index: 10;
+    }
+    header h1 { font-size: 16px; margin: 0; letter-spacing: 0.3px; color: var(--text); }
+    .tag { font-size: 12px; color: var(--muted); border: 1px solid var(--border); padding: 4px 8px; border-radius: 999px; }
+    .controls {
+      display: flex; gap: 8px; margin-left: auto; align-items: center; flex-wrap: wrap;
+    }
+    button, select, label input[type="checkbox"] {
+      font: inherit; color: inherit;
+    }
+    button {
+      background: var(--panel); border: 1px solid var(--border); padding: 8px 12px; border-radius: 8px;
+      cursor: pointer; transition: border-color 120ms, transform 60ms;
+    }
+    button.primary { background: var(--accent); border-color: #2f6bdc; color: white; }
+    button:active { transform: translateY(1px); }
+    button:hover { border-color: #38506a; }
+    .grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 12px; height: calc(100% - 58px);
+    }
+    .panel {
+      display: flex; flex-direction: column; background: var(--panel); border: 1px solid var(--border); border-radius: 12px; overflow: hidden;
+      min-height: 0;
+    }
+    .panel header { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-bottom: 1px solid var(--border); background: #12171d; }
+    .panel header h2 { font-size: 14px; margin: 0; color: var(--muted); }
+    .editor {
+      display: grid; grid-template-rows: auto 1fr auto; gap: 0; min-height: 0; height: 100%;
+    }
+    .fields {
+      display: grid; grid-template-columns: 1fr; gap: 10px; padding: 12px;
+      overflow: auto; min-height: 0;
+    }
+    .field {
+      display: grid; grid-template-rows: auto 1fr; gap: 8px; min-height: 120px;
+      border: 1px solid var(--border); border-radius: 10px; overflow: hidden;
+    }
+    .field label {
+      padding: 8px 10px; font-size: 12px; color: var(--muted); background: #0e1217; border-bottom: 1px solid var(--border);
+    }
+    textarea {
+      width: 100%; height: 200px; resize: vertical; background: #0a0f15; color: var(--text);
+      border: 0; outline: none; padding: 10px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      line-height: 1.4; font-size: 13px;
+    }
+    .libbar {
+      display: flex; gap: 12px; align-items: center; padding: 10px 12px; border-top: 1px solid var(--border); background: #10161d;
+      position: sticky; bottom: 0;
+    }
+    .libbar label { font-size: 12px; color: var(--muted); display: flex; gap: 6px; align-items: center; }
+    .preview-wrap {
+      display: grid; grid-template-rows: auto 1fr; min-height: 0; height: 100%;
+    }
+    .preview {
+      width: 100%; height: 100%; border: 0; background: white; border-radius: 0 0 12px 12px;
+    }
+    .status {
+      font-size: 12px; color: var(--muted); padding: 8px 12px; border-bottom: 1px solid var(--border); background: #10161d;
+      display: flex; gap: 12px; align-items: center;
+    }
+    .badge { padding: 2px 8px; border-radius: 999px; border: 1px solid var(--border); color: var(--muted); }
+    .badge.ok { color: #16a34a; border-color: #126c35; }
+    .badge.warn { color: var(--warn); border-color: #7a5011; }
+    .footer {
+      padding: 8px 12px; font-size: 12px; color: var(--muted); border-top: 1px solid var(--border); background: #0f1318;
+    }
+    @media (max-width: 1000px) {
+      .grid { grid-template-columns: 1fr; height: auto; }
+      .preview { min-height: 50vh; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Web Builder</h1>
+    <span class="tag">HTML / CSS / JS • 3D ready</span>
+    <div class="controls">
+      <button id="runBtn" class="primary" title="Render your code in the preview">Run ▶</button>
+      <button id="load3DBtn" title="Load a minimal Three.js scene">Load 3D demo</button>
+      <button id="clearBtn" title="Clear all boxes">Clear</button>
+      <button id="exportBtn" title="Download your project as a single .html file">Export</button>
+    </div>
+  </header>
+
+  <div class="grid">
+    <section class="panel editor">
+      <header>
+        <h2>Code editor</h2>
+        <span class="badge">HTML, CSS, JS</span>
+      </header>
+
+      <div class="fields">
+        <div class="field">
+          <label>HTML</label>
+          <textarea id="htmlBox" placeholder="Write your HTML here">
+<div id="app">
+  <h1>Hello, Web Builder 👋</h1>
+  <p>Edit HTML, CSS, and JS in the boxes. Click Run to preview.</p>
+  <button id="helloBtn">Click me</button>
+  <div id="stage" style="margin-top:16px;"></div>
+</div>
+          </textarea>
+        </div>
+
+        <div class="field">
+          <label>CSS</label>
+          <textarea id="cssBox" placeholder="Write your CSS here">
+:root {
+  --brand: #3b82f6;
+}
+body { font-family: system-ui, sans-serif; margin: 24px; }
+#app { max-width: 720px; margin: 0 auto; }
+h1 { color: var(--brand); margin-bottom: 8px; }
+button {
+  background: var(--brand); color: white; border: 0; padding: 10px 14px; border-radius: 8px;
+  box-shadow: 0 6px 16px rgba(59,130,246,.25);
+}
+button:hover { filter: brightness(1.1); }
+          </textarea>
+        </div>
+
+        <div class="field">
+          <label>JavaScript</label>
+          <textarea id="jsBox" placeholder="Write your JavaScript here">
+// Example: a simple click handler
+document.addEventListener('DOMContentLoaded', () => {
+  const btn = document.getElementById('helloBtn');
+  if (btn) {
+    btn.addEventListener('click', () => alert('Hello from your JS!'));
+  }
+});
+          </textarea>
+        </div>
+      </div>
+
+      <div class="libbar">
+        <span class="badge">Optional libraries</span>
+        <label><input type="checkbox" id="libThree" /> Three.js (3D)</label>
+        <label><input type="checkbox" id="libAFrame" /> A‑Frame (VR/3D)</label>
+        <span class="badge warn">Note: Only enable what you use</span>
+      </div>
+    </section>
+
+    <section class="panel preview-wrap">
+      <header>
+        <h2>Live preview</h2>
+        <span class="badge ok" id="statusBadge">Ready</span>
+      </header>
+      <div class="status">
+        <span>Sandboxed iframe with scripts enabled</span>
+        <span class="badge">Reload with Run</span>
+      </div>
+      <iframe id="preview" class="preview" sandbox="allow-scripts allow-same-origin allow-forms allow-modals"></iframe>
+      <div class="footer">
+        Tip: Use the Export button to save your current project as a single .html file.
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const htmlBox = document.getElementById('htmlBox');
+    const cssBox = document.getElementById('cssBox');
+    const jsBox = document.getElementById('jsBox');
+    const preview = document.getElementById('preview');
+    const runBtn = document.getElementById('runBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const load3DBtn = document.getElementById('load3DBtn');
+    const exportBtn = document.getElementById('exportBtn');
+    const statusBadge = document.getElementById('statusBadge');
+    const libThree = document.getElementById('libThree');
+    const libAFrame = document.getElementById('libAFrame');
+
+    const LIBS = {
+      three: "https://unpkg.com/three@0.160.0/build/three.min.js",
+      aframe: "https://unpkg.com/aframe@1.5.0/dist/aframe.min.js"
+    };
+
+    function buildDocument() {
+      const libs = [];
+      if (libThree.checked) libs.push(`<script src="${LIBS.three}"></` + "script>");
+      if (libAFrame.checked) libs.push(`<script src="${LIBS.aframe}"></` + "script>");
+
+      const doc = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Preview</title>
+${libs.join("\n")}
+<style>
+${cssBox.value || ""}
+</style>
+</head>
+<body>
+${htmlBox.value || ""}
+<script>
+try {
+${jsBox.value || ""}
+// Helpful: bubble errors
+window.addEventListener('error', (e) => {
+  alert('Error: ' + (e.message || e));
+});
+} catch (err) {
+  alert('Error: ' + err.message);
+}
+</` + "script">
+</body>
+</html>
+      `.trim();
+      return doc;
+    }
+
+    function run() {
+      const doc = buildDocument();
+      statusBadge.textContent = "Rendering…";
+      statusBadge.className = "badge";
+      // Use srcdoc for simplicity
+      preview.srcdoc = doc;
+      // Small delay for status feedback
+      setTimeout(() => {
+        statusBadge.textContent = "Rendered";
+        statusBadge.className = "badge ok";
+      }, 200);
+      // Persist to localStorage
+      try {
+        localStorage.setItem('wb_html', htmlBox.value);
+        localStorage.setItem('wb_css', cssBox.value);
+        localStorage.setItem('wb_js', jsBox.value);
+        localStorage.setItem('wb_lib_three', libThree.checked ? "1" : "0");
+        localStorage.setItem('wb_lib_aframe', libAFrame.checked ? "1" : "0");
+      } catch (e) {}
+    }
+
+    function clearAll() {
+      htmlBox.value = "";
+      cssBox.value = "";
+      jsBox.value = "";
+      libThree.checked = false;
+      libAFrame.checked = false;
+      preview.srcdoc = "<html><body style='font-family: system-ui; padding: 16px;'>Preview cleared. Click Run with new code.</body></html>";
+      statusBadge.textContent = "Cleared";
+      statusBadge.className = "badge warn";
+    }
+
+    function exportProject() {
+      const content = buildDocument();
+      const blob = new Blob([content], { type: "text/html" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const name = (document.title || "project").replace(/\s+/g, "-").toLowerCase();
+      a.href = url;
+      a.download = name + ".html";
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }, 0);
+    }
+
+    function loadThreeDemo() {
+      libThree.checked = true;
+
+      htmlBox.value = `
+<canvas id="scene"></canvas>
+<div style="position:fixed; top:12px; left:12px; background:#0008; color:#fff; padding:8px 10px; border-radius:8px; font: 12px/1.2 system-ui;">
+  Three.js demo — drag to orbit
+</div>
+      `.trim();
+
+      cssBox.value = `
+html, body {
+  margin: 0; height: 100%;
+  background: radial-gradient(1200px at 10% 10%, #10161d, #0b0f14);
+}
+#scene { display: block; width: 100vw; height: 100vh; }
+      `.trim();
+
+      jsBox.value = `
+// Minimal Three.js scene with resize and orbit controls
+const canvas = document.getElementById('scene');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setPixelRatio(devicePixelRatio);
+renderer.setSize(innerWidth, innerHeight);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x0b0f14);
+
+const camera = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, 0.1, 1000);
+camera.position.set(3, 2, 6);
+
+// Lights
+const hemi = new THREE.HemisphereLight(0xffffff, 0x404040, 0.8);
+scene.add(hemi);
+const dir = new THREE.DirectionalLight(0xffffff, 0.8);
+dir.position.set(5, 10, 7);
+scene.add(dir);
+
+// Objects
+const geo = new THREE.BoxGeometry(1,1,1);
+const mat = new THREE.MeshStandardMaterial({ color: 0x3b82f6, roughness: 0.35, metalness: 0.2 });
+const cube = new THREE.Mesh(geo, mat);
+scene.add(cube);
+
+const plane = new THREE.Mesh(new THREE.PlaneGeometry(50, 50), new THREE.MeshStandardMaterial({ color: 0x111111 }));
+plane.rotation.x = -Math.PI / 2;
+plane.position.y = -1;
+scene.add(plane);
+
+// Simple orbit interaction
+let isDown = false, lastX = 0, lastY = 0, az = 0, el = 0.4;
+canvas.addEventListener('mousedown', (e) => { isDown = true; lastX = e.clientX; lastY = e.clientY; });
+addEventListener('mouseup', () => isDown = false);
+addEventListener('mousemove', (e) => {
+  if (!isDown) return;
+  az += (e.clientX - lastX) * 0.005;
+  el += (e.clientY - lastY) * 0.005;
+  el = Math.max(-1.2, Math.min(1.2, el));
+  lastX = e.clientX; lastY = e.clientY;
+});
+function updateCamera() {
+  const r = 6;
+  camera.position.set(
+    Math.cos(az) * r * Math.cos(el),
+    Math.sin(el) * r,
+    Math.sin(az) * r * Math.cos(el)
+  );
+  camera.lookAt(0, 0, 0);
+}
+addEventListener('resize', () => {
+  renderer.setSize(innerWidth, innerHeight);
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+});
+
+function animate(t) {
+  requestAnimationFrame(animate);
+  updateCamera();
+  cube.rotation.y += 0.01;
+  cube.rotation.x += 0.005;
+  renderer.render(scene, camera);
+}
+animate();
+      `.trim();
+
+      run();
+    }
+
+    // Restore previous session
+    (function restore() {
+      try {
+        const h = localStorage.getItem('wb_html');
+        const c = localStorage.getItem('wb_css');
+        const j = localStorage.getItem('wb_js');
+        const t = localStorage.getItem('wb_lib_three');
+        const a = localStorage.getItem('wb_lib_aframe');
+        if (h !== null) htmlBox.value = h;
+        if (c !== null) cssBox.value = c;
+        if (j !== null) jsBox.value = j;
+        libThree.checked = t === "1";
+        libAFrame.checked = a === "1";
+        run();
+      } catch (e) {
+        // ignore
+      }
+    })();
+
+    runBtn.addEventListener('click', run);
+    clearBtn.addEventListener('click', clearAll);
+    exportBtn.addEventListener('click', exportProject);
+    load3DBtn.addEventListener('click', loadThreeDemo);
+  </script>
+</body>
+</html>
