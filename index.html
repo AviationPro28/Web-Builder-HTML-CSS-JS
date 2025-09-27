@@ -1,9 +1,214 @@
-<!DOCTYPE html>
-<html>
-  <head>
-    <meta http-equiv="refresh" content="0; url=test_page.html">
-  </head>
-  <body>
-    <p>If you are not redirected, <a href="test_page.html">click here</a>.</p>
-  </body>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Test Page — Interactive HTML</title>
+<style>
+  :root{--bg:#f6f8fb;--card:#fff;--muted:#5b6b7a;--accent:#0ea5a4}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial;background:var(--bg);color:#102a43;padding:20px}
+  .wrap{max-width:1000px;margin:0 auto;display:grid;grid-template-columns:1fr 340px;gap:18px}
+  .card{background:var(--card);border-radius:10px;padding:16px;box-shadow:0 6px 18px rgba(2,6,23,0.06);}
+  h1{margin:0 0 10px;font-size:20px}
+  p.small{color:var(--muted);margin:8px 0 12px;font-size:13px}
+  button{background:var(--accent);border:none;color:white;padding:8px 10px;border-radius:8px;cursor:pointer;font-weight:600}
+  input,textarea,select{width:100%;padding:8px;border-radius:8px;border:1px solid #e6eef6;margin-top:6px}
+  .row{display:flex;gap:8px;margin-top:10px}
+  .muted{color:var(--muted);font-size:13px}
+  .console{height:160px;overflow:auto;background:#0b1220;color:#cfeefe;padding:10px;border-radius:8px;font-family:monospace;font-size:13px}
+  .canvas{width:100%;height:200px;border-radius:8px;border:1px solid #e6eef6;background:white;display:block}
+  @media (max-width:920px){.wrap{grid-template-columns:1fr}}
+  .kbd{background:#eef6f6;border-radius:6px;padding:4px 6px;font-family:monospace;font-size:13px}
+  .list{max-height:140px;overflow:auto;padding:6px;border-radius:6px;border:1px dashed #e6eef6}
+  .item{padding:6px;border-bottom:1px solid #f1f6f8}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>Test Page — Interactive Features</h1>
+      <p class="small">Use this page to test buttons, form validation, canvas, localStorage, and basic JS behavior.</p>
+
+      <section id="basic">
+        <h3>Buttons & Console</h3>
+        <p class="muted">Click the buttons. Watch the console box below and the browser console (F12).</p>
+        <div class="row">
+          <button id="btnLog">Log Test</button>
+          <button id="btnWarn" style="background:#f59e0b">Warn</button>
+          <button id="btnErr" style="background:#ef4444">Error</button>
+          <button id="btnAlert" style="background:#374151">Alert</button>
+        </div>
+      </section>
+
+      <hr style="margin:14px 0;border:none;border-top:1px solid #f1f6f8">
+
+      <section id="counter">
+        <h3>Counter</h3>
+        <div class="row">
+          <button id="dec">-</button>
+          <div style="padding:8px;background:#f8fbfb;border-radius:8px;min-width:70px;text-align:center" id="count">0</div>
+          <button id="inc">+</button>
+          <button id="saveCount" style="background:#065f46">Save</button>
+        </div>
+        <p class="muted">Saved value persists to localStorage.</p>
+      </section>
+
+      <hr style="margin:14px 0;border:none;border-top:1px solid #f1f6f8">
+
+      <section id="form">
+        <h3>Form Validation</h3>
+        <form id="testForm" autocomplete="off">
+          <label>Name (required)</label>
+          <input id="name" required placeholder="Your name">
+          <label>Email (required)</label>
+          <input id="email" type="email" required placeholder="you@example.com">
+          <label>Message</label>
+          <textarea id="message" rows="3" placeholder="Short message"></textarea>
+          <div class="row" style="margin-top:8px">
+            <button type="submit">Submit</button>
+            <button type="button" id="resetForm" style="background:#334155">Reset</button>
+          </div>
+        </form>
+      </section>
+
+      <hr style="margin:14px 0;border:none;border-top:1px solid #f1f6f8">
+
+      <section id="canvasSection">
+        <h3>Drawing Canvas</h3>
+        <p class="muted">Draw with mouse / touch. Clear when done.</p>
+        <canvas id="paint" class="canvas"></canvas>
+        <div class="row" style="margin-top:8px">
+          <button id="clearCanvas" style="background:#7c3aed">Clear</button>
+          <button id="downloadCanvas" style="background:#0ea5a4">Download PNG</button>
+        </div>
+      </section>
+    </div>
+
+    <aside class="card">
+      <h3>Inspector</h3>
+      <p class="muted">Live logs and saved items.</p>
+      <div style="margin-bottom:8px">
+        <strong>Keyboard shortcut:</strong> <span class="kbd">Ctrl+Enter</span> runs a test log.
+      </div>
+      <div class="muted">Console:</div>
+      <div id="console" class="console"></div>
+
+      <hr style="margin:10px 0;border:none;border-top:1px solid #f1f6f8">
+
+      <div style="margin-bottom:8px">
+        <strong>Saved items</strong>
+        <div class="list" id="savedList"></div>
+      </div>
+
+      <div style="margin-top:8px">
+        <button id="clearAll" style="background:#ef4444">Clear Saved</button>
+      </div>
+
+    </aside>
+  </div>
+
+<script>
+(function(){
+  const logBox = document.getElementById('console');
+  function log(kind, msg){
+    const p = document.createElement('div');
+    p.textContent = '['+kind+'] '+msg;
+    p.style.padding='6px';
+    if(kind==='WARN') p.style.color='#f59e0b';
+    if(kind==='ERROR') p.style.color='#ff9b9b';
+    logBox.appendChild(p);
+    logBox.scrollTop = logBox.scrollHeight;
+    console[kind==='LOG' ? 'log' : kind==='WARN' ? 'warn' : 'error'](msg);
+  }
+
+  // Buttons
+  document.getElementById('btnLog').onclick = ()=> log('LOG','Log button clicked');
+  document.getElementById('btnWarn').onclick = ()=> log('WARN','Warn button clicked');
+  document.getElementById('btnErr').onclick = ()=> log('ERROR','Error button clicked');
+  document.getElementById('btnAlert').onclick = ()=> { alert('This is an alert — test OK'); log('LOG','Alert shown to user'); };
+
+  // Counter with persistence
+  const countEl = document.getElementById('count');
+  let count = parseInt(localStorage.getItem('test_count')||'0',10);
+  countEl.textContent = count;
+  document.getElementById('inc').onclick = ()=> { count++; countEl.textContent = count; };
+  document.getElementById('dec').onclick = ()=> { count--; countEl.textContent = count; };
+  document.getElementById('saveCount').onclick = ()=> { localStorage.setItem('test_count', String(count)); log('LOG','Count saved: '+count); renderSaved(); };
+
+  // Form validation
+  const form = document.getElementById('testForm');
+  form.addEventListener('submit', (e)=>{
+    e.preventDefault();
+    const name = document.getElementById('name').value.trim();
+    const email = document.getElementById('email').value.trim();
+    if(!name){ log('ERROR','Name is required'); return alert('Name is required'); }
+    if(!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ log('ERROR','Valid email required'); return alert('Valid email required'); }
+    const message = document.getElementById('message').value.trim();
+    const payload = {name, email, message, savedAt: new Date().toISOString()};
+    // save to localStorage list
+    const arr = JSON.parse(localStorage.getItem('test_saved')||'[]');
+    arr.unshift(payload);
+    localStorage.setItem('test_saved', JSON.stringify(arr.slice(0,50)));
+    log('LOG','Form submitted: '+JSON.stringify(payload));
+    renderSaved();
+    form.reset();
+  });
+  document.getElementById('resetForm').onclick = ()=> { form.reset(); log('LOG','Form reset'); };
+
+  // Saved list rendering
+  function renderSaved(){
+    const node = document.getElementById('savedList');
+    node.innerHTML = '';
+    const arr = JSON.parse(localStorage.getItem('test_saved')||'[]');
+    if(arr.length===0){ node.innerHTML = '<div class=\"item\">(no saved items)</div>'; return; }
+    arr.forEach((it, idx)=>{
+      const div = document.createElement('div');
+      div.className='item';
+      div.innerHTML = '<strong>'+escapeHtml(it.name)+'</strong> <div class=\"muted\">'+escapeHtml(it.email)+'</div><div style=\"font-size:12px;margin-top:6px;color:#475569\">'+escapeHtml(it.message||'')+'</div>';
+      node.appendChild(div);
+    });
+  }
+  document.getElementById('clearAll').onclick = ()=> { localStorage.removeItem('test_saved'); localStorage.removeItem('test_count'); log('LOG','Cleared saved items'); renderSaved(); };
+
+  function escapeHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  // Keyboard shortcut Ctrl/Cmd + Enter
+  window.addEventListener('keydown',(e)=>{
+    const isMac = navigator.platform.toUpperCase().includes('MAC');
+    if((isMac?e.metaKey:e.ctrlKey) && e.key==='Enter'){
+      log('LOG','Ctrl/Cmd+Enter pressed — test log');
+    }
+  });
+
+  // Canvas drawing
+  const canvas = document.getElementById('paint');
+  const ctx = canvas.getContext('2d');
+  function resizeCanvas(){ canvas.width = canvas.clientWidth; canvas.height = canvas.clientHeight; }
+  window.addEventListener('resize', resizeCanvas);
+  resizeCanvas();
+  ctx.lineWidth = 3; ctx.lineCap = 'round'; ctx.strokeStyle = '#0ea5a4';
+  let drawing=false, last=null;
+  function pos(e){ const rect = canvas.getBoundingClientRect(); if(e.touches){ e = e.touches[0]; } return {x: e.clientX - rect.left, y: e.clientY - rect.top}; }
+  canvas.addEventListener('mousedown', (e)=>{ drawing=true; last=pos(e); });
+  canvas.addEventListener('mousemove', (e)=>{ if(!drawing) return; const p = pos(e); ctx.beginPath(); ctx.moveTo(last.x,last.y); ctx.lineTo(p.x,p.y); ctx.stroke(); last = p; });
+  canvas.addEventListener('mouseup', ()=>{ drawing=false; last=null; });
+  canvas.addEventListener('mouseleave', ()=>{ drawing=false; last=null; });
+  canvas.addEventListener('touchstart',(e)=>{ drawing=true; last=pos(e); e.preventDefault(); });
+  canvas.addEventListener('touchmove',(e)=>{ if(!drawing) return; const p = pos(e); ctx.beginPath(); ctx.moveTo(last.x,last.y); ctx.lineTo(p.x,p.y); ctx.stroke(); last = p; e.preventDefault(); });
+  canvas.addEventListener('touchend',()=>{ drawing=false; last=null; });
+
+  document.getElementById('clearCanvas').onclick = ()=>{ ctx.clearRect(0,0,canvas.width,canvas.height); log('LOG','Canvas cleared'); };
+  document.getElementById('downloadCanvas').onclick = ()=>{
+    const url = canvas.toDataURL('image/png');
+    const a = document.createElement('a'); a.href = url; a.download = 'canvas.png'; a.click();
+    log('LOG','Canvas downloaded as PNG');
+  };
+
+  // Initial render saved list
+  renderSaved();
+  log('LOG','Test page ready');
+})();
+</script>
+</body>
 </html>
