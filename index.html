@@ -1,12 +1,9 @@
-<button onclick="showPage('home')">Home</button>
-<button onclick="showPage('test')">Test Page</button>
-
-<div id="home">This is index.html content.</div>
-<div id="test" style="display:none;">This is test_page.html content.</div>
-
-<script>
-function showPage(page) {
-  document.getElementById('home').style.display = (page === 'home') ? 'block' : 'none';
-  document.getElementById('test').style.display = (page === 'test') ? 'block' : 'none';
-}
-</script>
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="refresh" content="0; url=test_page.html">
+  </head>
+  <body>
+    <p>If you are not redirected, <a href="test_page.html">click here</a>.</p>
+  </body>
+</html>
